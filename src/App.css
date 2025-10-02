@@ -1,40 +1,103 @@
+/* Global */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background: #f9f9f9;
-  color: #333;
+  background: #f3f4f6; /* pak më i butë se f9f9f9 */
+  color: #1f2937; /* tekst më i errët dhe i qartë */
 }
 
-header, footer {
-  padding: 1rem;
+/* Header */
+header {
+  padding: 1rem 2rem;
   background: #fff;
   border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
+header a {
+  text-decoration: none;
+  color: #4f46e5;
+  font-weight: 500;
+}
+
+/* Table */
 table {
   width: 100%;
   border-collapse: collapse;
+  background: #fff;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 th, td {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
+  padding: 0.75rem 1rem;
+  text-align: left;
 }
 
+thead {
+  background: #f9fafb;
+}
+
+tr:hover {
+  background: #f3f4f6;
+}
+
+/* Buttons */
 button {
   cursor: pointer;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s;
 }
 
+button:hover {
+  opacity: 0.9;
+}
+
+/* Inputs */
 input {
   outline: none;
   border: 1px solid #ccc;
+  border-radius: 1rem;
+  padding: 0.5rem 1rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 input:focus {
   border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
 }
 
+/* Modal Form overlay */
+.fixed {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+form {
+  background: #fff;
+  border-radius: 2rem;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* Responsive table for mobile */
 @media (max-width: 600px) {
   table, thead, tbody, th, td, tr {
     display: block;
@@ -45,8 +108,7 @@ input:focus {
   td {
     display: flex;
     justify-content: space-between;
-    padding: 0.5rem;
-    border: none;
-    border-bottom: 1px solid #ddd;
+    padding: 0.75rem;
+    border-bottom: 1px solid #eee;
   }
 }
