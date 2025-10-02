@@ -5,8 +5,8 @@ import { BrowserRouter, Routes, Route, Link, useNavigate, useParams } from "reac
 /************************************
  * Helpers
  ************************************/
-function classNames(...xs) {
-  return xs.filter(Boolean).join(" ");
+function classNames(...classes) {
+  return classes.filter(Boolean).join(" ");
 }
 
 function useUsersFiltered(users, search) {
@@ -14,7 +14,9 @@ function useUsersFiltered(users, search) {
     const q = search.trim().toLowerCase();
     if (!q) return users;
     return users.filter(
-      u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+      u =>
+        u.name.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q)
     );
   }, [users, search]);
 }
@@ -24,10 +26,10 @@ function useUsersFiltered(users, search) {
  ************************************/
 function Header({ count }) {
   return (
-    <header>
-      <h1 className="text-xl font-bold">Users ({count})</h1>
+    <header className="header">
+      <h1 className="header-title">Users ({count})</h1>
       <nav>
-        <Link to="/">List</Link>
+        <Link to="/" className="link">List</Link>
       </nav>
     </header>
   );
@@ -39,6 +41,7 @@ function SearchBar({ search, setSearch }) {
       value={search}
       onChange={e => setSearch(e.target.value)}
       placeholder="Search by name or email…"
+      className="input-search"
     />
   );
 }
@@ -47,9 +50,7 @@ function AddUserButton({ addUser }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button onClick={() => setOpen(true)} className="bg-indigo-600 text-white">
-        + Add User
-      </button>
+      <button onClick={() => setOpen(true)} className="btn-add">+ Add User</button>
       {open && <UserForm onClose={() => setOpen(false)} addUser={addUser} />}
     </>
   );
@@ -73,35 +74,35 @@ function UserForm({ onClose, addUser }) {
     e.preventDefault();
     setTouched(true);
     if (Object.keys(errors).length) return;
-    addUser({ id: Date.now(), name, email, company });
+    addUser({ name, email, company });
     onClose();
   };
 
   return (
-    <div className="fixed" onClick={onClose}>
-      <form onClick={e => e.stopPropagation()} onSubmit={submit}>
-        <h3>Add a new User</h3>
-        <label>
+    <div className="modal-bg" onClick={onClose}>
+      <form onClick={e => e.stopPropagation()} onSubmit={submit} className="modal">
+        <h3 className="modal-title">Add a new User</h3>
+        <label className="modal-label">
           Name *
           <input
-            className={classNames(touched && errors.name && "border-red-500")}
+            className={classNames("modal-input", touched && errors.name && "input-error")}
             value={name} onChange={e => setName(e.target.value)} />
-          {touched && errors.name && <div className="text-red-600">{errors.name}</div>}
+          {touched && errors.name && <div className="input-error-text">{errors.name}</div>}
         </label>
-        <label>
+        <label className="modal-label">
           Email *
           <input
-            className={classNames(touched && errors.email && "border-red-500")}
+            className={classNames("modal-input", touched && errors.email && "input-error")}
             value={email} onChange={e => setEmail(e.target.value)} />
-          {touched && errors.email && <div className="text-red-600">{errors.email}</div>}
+          {touched && errors.email && <div className="input-error-text">{errors.email}</div>}
         </label>
-        <label>
+        <label className="modal-label">
           Company
-          <input value={company} onChange={e => setCompany(e.target.value)} />
+          <input className="modal-input" value={company} onChange={e => setCompany(e.target.value)} />
         </label>
-        <div>
-          <button type="button" onClick={onClose}>Cancel</button>
-          <button type="submit">Add</button>
+        <div className="modal-actions">
+          <button type="button" onClick={onClose} className="btn-cancel">Cancel</button>
+          <button type="submit" className="btn-submit">Add</button>
         </div>
       </form>
     </div>
@@ -109,9 +110,9 @@ function UserForm({ onClose, addUser }) {
 }
 
 function UsersTable({ users, navigate }) {
-  if (!users.length) return <div className="text-center py-10 text-gray-500">No users found.</div>;
+  if (!users.length) return <div className="no-users">No users found.</div>;
   return (
-    <table>
+    <table className="users-table">
       <thead>
         <tr>
           <th>Name</th>
@@ -121,11 +122,9 @@ function UsersTable({ users, navigate }) {
       </thead>
       <tbody>
         {users.map(u => (
-          <tr key={u.id} className="hover:bg-gray-100">
+          <tr key={u.id} className="users-row">
             <td>
-              <button className="text-indigo-700" onClick={() => navigate(`/users/${u.id}`)}>
-                {u.name}
-              </button>
+              <button className="link" onClick={() => navigate(`/users/${u.id}`)}>{u.name}</button>
             </td>
             <td>{u.email}</td>
             <td>{u.company || "—"}</td>
@@ -136,10 +135,7 @@ function UsersTable({ users, navigate }) {
   );
 }
 
-/************************************
- * Pages
- ************************************/
-function ListPage() {
+function ListPage({ setUsersCount }) {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
@@ -147,22 +143,32 @@ function ListPage() {
   useEffect(() => {
     fetch("https://jsonplaceholder.typicode.com/users")
       .then(res => res.json())
-      .then(data => setUsers(data.map(u => ({
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        company: u.company?.name || "—",
-        phone: u.phone,
-        website: u.website,
-        address: u.address
-      }))));
+      .then(data => {
+        const mapped = data.map(u => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          company: u.company?.name || "—",
+          phone: u.phone || "—",
+          website: u.website || "—",
+          address: u.address || null
+        }));
+        setUsers(mapped);
+        setUsersCount(mapped.length);
+      });
   }, []);
 
-  const addUser = (user) => setUsers([user, ...users]);
+  const addUser = ({ name, email, company }) => {
+    const newUser = { id: Date.now(), name, email, company };
+    const updatedUsers = [newUser, ...users];
+    setUsers(updatedUsers);
+    setUsersCount(updatedUsers.length);
+  };
+
   const filteredUsers = useUsersFiltered(users, search);
 
   return (
-    <main>
+    <main className="main">
       <SearchBar search={search} setSearch={setSearch} />
       <AddUserButton addUser={addUser} />
       <UsersTable users={filteredUsers} navigate={navigate} />
@@ -172,9 +178,9 @@ function ListPage() {
 
 function DetailRow({ label, value }) {
   return (
-    <div className="grid grid-cols-3 gap-2 py-2">
-      <div className="text-sm text-gray-500">{label}</div>
-      <div className="font-medium col-span-2">{value || "—"}</div>
+    <div className="detail-row">
+      <div className="detail-label">{label}</div>
+      <div className="detail-value">{value || "—"}</div>
     </div>
   );
 }
@@ -190,18 +196,18 @@ function UserDetailsPage() {
       .then(u => setUser(u));
   }, [id]);
 
-  if (!user) return <div className="text-center py-10">Loading...</div>;
+  if (!user) return <div className="loading">Loading...</div>;
 
   const addressText = user.address
     ? `${user.address.street}, ${user.address.suite}, ${user.address.city} ${user.address.zipcode}`
     : "—";
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-8">
-      <button onClick={() => navigate(-1)} className="mb-4 border rounded-xl px-3 py-1.5">← Back</button>
-      <div className="rounded-2xl border p-6 bg-white">
-        <h1 className="text-2xl font-semibold mb-1">{user.name}</h1>
-        <p className="text-gray-600 mb-4">{user.company?.name}</p>
+    <main className="main-detail">
+      <button onClick={() => navigate(-1)} className="btn-back">← Back</button>
+      <div className="detail-card">
+        <h1 className="detail-name">{user.name}</h1>
+        <p className="detail-company">{user.company?.name}</p>
         <DetailRow label="Email" value={user.email} />
         <DetailRow label="Phone" value={user.phone} />
         <DetailRow label="Website" value={user.website} />
@@ -215,13 +221,15 @@ function UserDetailsPage() {
  * App root
  ************************************/
 export default function App() {
+  const [usersCount, setUsersCount] = useState(0);
+
   return (
     <BrowserRouter>
-      <Header count={0} />
+      <Header count={usersCount} />
       <Routes>
-        <Route path="/" element={<ListPage />} />
+        <Route path="/" element={<ListPage setUsersCount={setUsersCount} />} />
         <Route path="/users/:id" element={<UserDetailsPage />} />
-        <Route path="*" element={<div className="text-center py-10">Page not found</div>} />
+        <Route path="*" element={<div className="loading">Page not found</div>} />
       </Routes>
     </BrowserRouter>
   );
