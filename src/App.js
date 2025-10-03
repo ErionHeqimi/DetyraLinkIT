@@ -46,6 +46,14 @@ function SearchBar({ search, setSearch }) {
   );
 }
 
+function SortButton({ sortAsc, toggleSort }) {
+  return (
+    <button onClick={toggleSort} className="btn-sort">
+      Sort Name {sortAsc ? "↑" : "↓"}
+    </button>
+  );
+}
+
 function AddUserButton({ addUser }) {
   const [open, setOpen] = useState(false);
   return (
@@ -138,6 +146,7 @@ function UsersTable({ users, navigate }) {
 function ListPage({ setUsersCount }) {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
+  const [sortAsc, setSortAsc] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -167,11 +176,22 @@ function ListPage({ setUsersCount }) {
 
   const filteredUsers = useUsersFiltered(users, search);
 
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    if (a.name.toLowerCase() < b.name.toLowerCase()) return sortAsc ? -1 : 1;
+    if (a.name.toLowerCase() > b.name.toLowerCase()) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  const toggleSort = () => setSortAsc(!sortAsc);
+
   return (
     <main className="main">
-      <SearchBar search={search} setSearch={setSearch} />
+      <div className="search-sort">
+        <SearchBar search={search} setSearch={setSearch} />
+        <SortButton sortAsc={sortAsc} toggleSort={toggleSort} />
+      </div>
       <AddUserButton addUser={addUser} />
-      <UsersTable users={filteredUsers} navigate={navigate} />
+      <UsersTable users={sortedUsers} navigate={navigate} />
     </main>
   );
 }
